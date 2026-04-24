@@ -4,5 +4,6 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
+    "notebook>=7.5.5",
     "torch==2.11.0",
 ]

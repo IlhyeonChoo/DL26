@@ -1,0 +1,38 @@
+{
+  "baseline": {
+    "model_structure": "784 -> 256 -> 128 -> 10",
+    "changed_elements": [],
+    "reason": "기존 MNIST baseline 형태를 최대한 유지한 기준 모델",
+    "lowest_impact_failure": "baseline은 실패 사례가 아니라 비교 기준선",
+    "overfitting": "overfitting이 발생한 것으로 볼 수 있음. 추정 시작 시점은 epoch 14",
+    "final_train_validation_gap": 0.032759259259259266,
+    "structure_relation": "작은 MLP이므로 표현력은 제한적이지만 train/validation gap이 상대적으로 완만할 가능성이 높음"
+  },
+  "improved": {
+    "model_structure": "784 -> 512 -> 256 -> 128 -> 10",
+    "changed_elements": [
+      "모델 구조 변경: hidden layer 1개 추가 + 첫 hidden dimension 확대",
+      "activation 변경: ReLU -> GELU",
+      "learning rate 변화: 0.001 -> 0.0007 + cosine annealing scheduler 추가",
+      "입력 feature 처리 방식 변경: FashionMNIST 평균/표준편차로 정규화"
+    ],
+    "reason": "FashionMNIST는 MNIST보다 클래스 간 시각적 유사성이 커서 더 깊은 구조, 부드러운 activation, 입력 정규화가 성능 향상에 도움이 될 가능성이 높음",
+    "lowest_impact_failure": "Tanh 기반의 더 큰 모델은 capacity는 커졌지만 optimization이 느리고 validation 정체가 빨랐음",
+    "overfitting": "overfitting이 발생한 것으로 볼 수 있음. 추정 시작 시점은 epoch 9",
+    "final_train_validation_gap": 0.08687037037037038,
+    "structure_relation": "깊어진 구조가 표현력을 높이지만 입력 정규화와 scheduler가 optimization을 안정화해서 baseline보다 더 좋은 generalization을 기대할 수 있음"
+  },
+  "failed_case": {
+    "model_structure": "784 -> 1024 -> 512 -> 256 -> 128 -> 10",
+    "changed_elements": [
+      "모델 구조 변경: layer 수와 hidden dimension을 크게 증가",
+      "activation 변경: ReLU -> Tanh",
+      "입력 feature 처리 방식 변경: FashionMNIST 평균/표준편차로 정규화"
+    ],
+    "reason": "더 큰 모델로 표현력을 높이면 성능이 오를 수 있다고 예상했음",
+    "lowest_impact_failure": "실패 사례 자체. 큰 모델과 Tanh 조합은 train/validation gap을 키우고 학습 효율을 떨어뜨릴 수 있음",
+    "overfitting": "overfitting이 발생한 것으로 볼 수 있음. 추정 시작 시점은 epoch 19",
+    "final_train_validation_gap": 0.031907407407407384,
+    "structure_relation": "지나치게 큰 hidden dimension과 Tanh 조합은 train 성능은 빠르게 올라가도 validation 정체나 gap 확대를 만들기 쉬움"
+  }
+}
