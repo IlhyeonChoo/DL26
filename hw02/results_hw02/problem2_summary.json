@@ -1,0 +1,43 @@
+{
+  "no_regularization": {
+    "best_epoch": 27,
+    "best_val_accuracy": 0.8567,
+    "test_accuracy_at_best_val": 0.8485,
+    "final_train_loss": 0.0508022224187851,
+    "final_val_loss": 0.8333096357345581,
+    "final_train_accuracy": 0.983,
+    "final_val_accuracy": 0.8422,
+    "final_accuracy_gap": 0.14080000000000004,
+    "estimated_overfitting_onset_epoch": 8
+  },
+  "weight_decay": {
+    "best_epoch": 26,
+    "best_val_accuracy": 0.8552,
+    "test_accuracy_at_best_val": 0.8489,
+    "final_train_loss": 0.06484519490003586,
+    "final_val_loss": 0.705987638092041,
+    "final_train_accuracy": 0.9776,
+    "final_val_accuracy": 0.8387,
+    "final_accuracy_gap": 0.13890000000000002
+  },
+  "dropout": {
+    "best_epoch": 27,
+    "best_val_accuracy": 0.8555,
+    "test_accuracy_at_best_val": 0.8526,
+    "final_train_loss": 0.2265169799566269,
+    "final_val_loss": 0.49813748998641966,
+    "final_train_accuracy": 0.9164,
+    "final_val_accuracy": 0.8542,
+    "final_accuracy_gap": 0.06220000000000003
+  },
+  "dropout_weight_decay": {
+    "best_epoch": 24,
+    "best_val_accuracy": 0.8558,
+    "test_accuracy_at_best_val": 0.8468,
+    "final_train_loss": 0.21646791908740998,
+    "final_val_loss": 0.4975991234779358,
+    "final_train_accuracy": 0.9196,
+    "final_val_accuracy": 0.8524,
+    "final_accuracy_gap": 0.06719999999999993
+  }
+}

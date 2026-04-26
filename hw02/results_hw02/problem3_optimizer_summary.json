@@ -1,0 +1,42 @@
+{
+  "sgd": {
+    "best_epoch": 25,
+    "best_val_accuracy": 0.7255,
+    "test_accuracy_at_best_val": 0.7156,
+    "final_train_loss": 0.7960206953048706,
+    "final_val_loss": 0.792144323348999,
+    "final_train_accuracy": 0.7264,
+    "final_val_accuracy": 0.7255,
+    "final_accuracy_gap": 0.0009000000000000119
+  },
+  "sgd_momentum": {
+    "best_epoch": 18,
+    "best_val_accuracy": 0.8428,
+    "test_accuracy_at_best_val": 0.8277,
+    "final_train_loss": 0.2703281056404114,
+    "final_val_loss": 0.45422493624687194,
+    "final_train_accuracy": 0.9088,
+    "final_val_accuracy": 0.8417,
+    "final_accuracy_gap": 0.06710000000000005
+  },
+  "adagrad": {
+    "best_epoch": 16,
+    "best_val_accuracy": 0.8529,
+    "test_accuracy_at_best_val": 0.8466,
+    "final_train_loss": 0.14766525020599366,
+    "final_val_loss": 0.5271532722949982,
+    "final_train_accuracy": 0.9508,
+    "final_val_accuracy": 0.8362,
+    "final_accuracy_gap": 0.11459999999999992
+  },
+  "adam": {
+    "best_epoch": 15,
+    "best_val_accuracy": 0.8466,
+    "test_accuracy_at_best_val": 0.8338,
+    "final_train_loss": 0.1557519877910614,
+    "final_val_loss": 0.7111513897895813,
+    "final_train_accuracy": 0.9434,
+    "final_val_accuracy": 0.8446,
+    "final_accuracy_gap": 0.0988
+  }
+}

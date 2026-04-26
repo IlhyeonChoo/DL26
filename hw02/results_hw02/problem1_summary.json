@@ -1,0 +1,22 @@
+{
+  "sigmoid_deep": {
+    "model_structure": "784 -> 256 -> 256 -> 256 -> 256 -> 256 -> 256 -> 256 -> 256 -> 10",
+    "trainable_parameters": 664074,
+    "first_hidden_gradient_norm_final_epoch": 0.061212608093581145,
+    "last_hidden_gradient_norm_final_epoch": 0.025954057315212428,
+    "output_gradient_norm_final_epoch": 0.4570826576376448,
+    "first_to_last_hidden_gradient_ratio": 2.3584986096837603,
+    "best_val_accuracy": 0.4035,
+    "test_accuracy_at_best_val": 0.3968
+  },
+  "relu_deep": {
+    "model_structure": "784 -> 256 -> 256 -> 256 -> 256 -> 256 -> 256 -> 256 -> 256 -> 10",
+    "trainable_parameters": 664074,
+    "first_hidden_gradient_norm_final_epoch": 0.6063152404159916,
+    "last_hidden_gradient_norm_final_epoch": 0.1466304968890487,
+    "output_gradient_norm_final_epoch": 0.5317025139015548,
+    "first_to_last_hidden_gradient_ratio": 4.1349872862721995,
+    "best_val_accuracy": 0.8885,
+    "test_accuracy_at_best_val": 0.8833
+  }
+}

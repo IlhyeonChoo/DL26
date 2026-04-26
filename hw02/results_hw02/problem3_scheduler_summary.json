@@ -1,0 +1,22 @@
+{
+  "adam_no_scheduler": {
+    "best_epoch": 15,
+    "best_val_accuracy": 0.8466,
+    "test_accuracy_at_best_val": 0.8338,
+    "final_train_loss": 0.1557519877910614,
+    "final_val_loss": 0.7111513897895813,
+    "final_train_accuracy": 0.9434,
+    "final_val_accuracy": 0.8446,
+    "final_accuracy_gap": 0.0988
+  },
+  "adam_cosine_scheduler": {
+    "best_epoch": 24,
+    "best_val_accuracy": 0.8569,
+    "test_accuracy_at_best_val": 0.8502,
+    "final_train_loss": 0.046266347181517634,
+    "final_val_loss": 0.7201961514472961,
+    "final_train_accuracy": 0.9856,
+    "final_val_accuracy": 0.8565,
+    "final_accuracy_gap": 0.1291
+  }
+}
