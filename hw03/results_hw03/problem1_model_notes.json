@@ -1,0 +1,10 @@
+{
+  "model_structure": [
+    "Conv2d(3,64,3,padding=1) -> BatchNorm2d -> ReLU",
+    "Conv2d(64,64,3,padding=1) -> BatchNorm2d -> ReLU -> MaxPool2d -> Dropout2d",
+    "Conv2d(64,128,3,padding=1) -> BatchNorm2d -> ReLU -> MaxPool2d -> Dropout2d",
+    "AdaptiveAvgPool2d -> Linear(128,128) -> ReLU -> Dropout -> Linear(128,10)"
+  ],
+  "batchnorm_position_reason": "BatchNorm is placed after each convolution to stabilize feature distributions before ReLU activation.",
+  "dropout_position_reason": "Dropout2d is placed after pooling blocks and Dropout is placed in the classifier to reduce co-adaptation and overfitting."
+}

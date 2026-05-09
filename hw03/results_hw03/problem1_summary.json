@@ -1,0 +1,12 @@
+{
+  "custom_cnn": {
+    "total_parameters": 130634,
+    "trainable_parameters": 130634,
+    "best_epoch_by_test_accuracy": 20,
+    "best_test_accuracy": 0.6665,
+    "final_train_accuracy": 0.60884,
+    "final_test_accuracy": 0.6665,
+    "final_test_loss": 0.9273221946716309,
+    "test_accuracy_per_million_trainable_parameters": 5.1020408163265305
+  }
+}

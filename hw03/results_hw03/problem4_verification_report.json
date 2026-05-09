@@ -1,0 +1,242 @@
+{
+  "scratch": {
+    "mode": "scratch",
+    "weight_source_for_verification": "None; structure and freeze policy only",
+    "output_shape": [
+      2,
+      10
+    ],
+    "output_shape_ok": true,
+    "finite_output": true,
+    "shape_report": {
+      "conv1": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "bn1": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "relu": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "maxpool": [
+        2,
+        64,
+        56,
+        56
+      ],
+      "layer1": [
+        2,
+        64,
+        56,
+        56
+      ],
+      "layer2": [
+        2,
+        128,
+        28,
+        28
+      ],
+      "layer3": [
+        2,
+        256,
+        14,
+        14
+      ],
+      "layer4": [
+        2,
+        512,
+        7,
+        7
+      ],
+      "avgpool": [
+        2,
+        512,
+        1,
+        1
+      ],
+      "fc": [
+        2,
+        10
+      ]
+    },
+    "total_parameters": 11181642,
+    "trainable_parameters": 11181642,
+    "fc_gradient_exists": true,
+    "frozen_backbone_gradient_count": 0,
+    "trainable_backbone_gradient_count": 60,
+    "freeze_policy_ok": true
+  },
+  "feature_extraction": {
+    "mode": "feature_extraction",
+    "weight_source_for_verification": "None; structure and freeze policy only",
+    "output_shape": [
+      2,
+      10
+    ],
+    "output_shape_ok": true,
+    "finite_output": true,
+    "shape_report": {
+      "conv1": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "bn1": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "relu": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "maxpool": [
+        2,
+        64,
+        56,
+        56
+      ],
+      "layer1": [
+        2,
+        64,
+        56,
+        56
+      ],
+      "layer2": [
+        2,
+        128,
+        28,
+        28
+      ],
+      "layer3": [
+        2,
+        256,
+        14,
+        14
+      ],
+      "layer4": [
+        2,
+        512,
+        7,
+        7
+      ],
+      "avgpool": [
+        2,
+        512,
+        1,
+        1
+      ],
+      "fc": [
+        2,
+        10
+      ]
+    },
+    "total_parameters": 11181642,
+    "trainable_parameters": 5130,
+    "fc_gradient_exists": true,
+    "frozen_backbone_gradient_count": 0,
+    "trainable_backbone_gradient_count": 0,
+    "freeze_policy_ok": true
+  },
+  "fine_tuning": {
+    "mode": "fine_tuning",
+    "weight_source_for_verification": "None; structure and freeze policy only",
+    "output_shape": [
+      2,
+      10
+    ],
+    "output_shape_ok": true,
+    "finite_output": true,
+    "shape_report": {
+      "conv1": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "bn1": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "relu": [
+        2,
+        64,
+        112,
+        112
+      ],
+      "maxpool": [
+        2,
+        64,
+        56,
+        56
+      ],
+      "layer1": [
+        2,
+        64,
+        56,
+        56
+      ],
+      "layer2": [
+        2,
+        128,
+        28,
+        28
+      ],
+      "layer3": [
+        2,
+        256,
+        14,
+        14
+      ],
+      "layer4": [
+        2,
+        512,
+        7,
+        7
+      ],
+      "avgpool": [
+        2,
+        512,
+        1,
+        1
+      ],
+      "fc": [
+        2,
+        10
+      ]
+    },
+    "total_parameters": 11181642,
+    "trainable_parameters": 11181642,
+    "fc_gradient_exists": true,
+    "frozen_backbone_gradient_count": 0,
+    "trainable_backbone_gradient_count": 60,
+    "freeze_policy_ok": true
+  },
+  "intentional_error_unmodified_fc": {
+    "intentional_error": "ResNet-18 final fc layer was not changed from 1000 ImageNet classes to 10 CIFAR-10 classes.",
+    "output_shape": [
+      2,
+      1000
+    ],
+    "expected_shape": [
+      2,
+      10
+    ],
+    "detected": true
+  }
+}

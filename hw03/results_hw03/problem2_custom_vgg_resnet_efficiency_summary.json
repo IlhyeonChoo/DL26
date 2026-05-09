@@ -1,0 +1,32 @@
+{
+  "custom_cnn": {
+    "total_parameters": 130634,
+    "trainable_parameters": 130634,
+    "best_epoch_by_test_accuracy": 20,
+    "best_test_accuracy": 0.6665,
+    "final_train_accuracy": 0.60884,
+    "final_test_accuracy": 0.6665,
+    "final_test_loss": 0.9273221946716309,
+    "test_accuracy_per_million_trainable_parameters": 5.1020408163265305
+  },
+  "vgg16_scratch": {
+    "total_parameters": 134301514,
+    "trainable_parameters": 134301514,
+    "best_epoch_by_test_accuracy": 1,
+    "best_test_accuracy": 0.1,
+    "final_train_accuracy": 0.10092,
+    "final_test_accuracy": 0.1,
+    "final_test_loss": 2.302734375,
+    "test_accuracy_per_million_trainable_parameters": 0.0007445932441238153
+  },
+  "resnet18_scratch": {
+    "total_parameters": 11181642,
+    "trainable_parameters": 11181642,
+    "best_epoch_by_test_accuracy": 15,
+    "best_test_accuracy": 0.7958,
+    "final_train_accuracy": 0.81742,
+    "final_test_accuracy": 0.7958,
+    "final_test_loss": 0.5924525714397431,
+    "test_accuracy_per_million_trainable_parameters": 0.07117022705609784
+  }
+}

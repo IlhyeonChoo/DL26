@@ -1,0 +1,32 @@
+{
+  "resnet18_scratch_224": {
+    "total_parameters": 11181642,
+    "trainable_parameters": 11181642,
+    "best_epoch_by_test_accuracy": 10,
+    "best_test_accuracy": 0.8865,
+    "final_train_accuracy": 0.98528,
+    "final_test_accuracy": 0.8865,
+    "final_test_loss": 0.35242116475105284,
+    "test_accuracy_per_million_trainable_parameters": 0.07928173697566064
+  },
+  "resnet18_feature_extraction": {
+    "total_parameters": 11181642,
+    "trainable_parameters": 5130,
+    "best_epoch_by_test_accuracy": 7,
+    "best_test_accuracy": 0.8761,
+    "final_train_accuracy": 0.89272,
+    "final_test_accuracy": 0.8748,
+    "final_test_loss": 0.3635495837688446,
+    "test_accuracy_per_million_trainable_parameters": 170.5263157894737
+  },
+  "resnet18_fine_tuning": {
+    "total_parameters": 11181642,
+    "trainable_parameters": 11181642,
+    "best_epoch_by_test_accuracy": 10,
+    "best_test_accuracy": 0.9612,
+    "final_train_accuracy": 0.9997,
+    "final_test_accuracy": 0.9612,
+    "final_test_loss": 0.1338727971792221,
+    "test_accuracy_per_million_trainable_parameters": 0.08596233004061479
+  }
+}
