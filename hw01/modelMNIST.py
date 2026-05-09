@@ -1,4 +1,4 @@
-from torch import nn
+import torch.nn as nn
 
 import loadMNISTData
 import settingDevice
