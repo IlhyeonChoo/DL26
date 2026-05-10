@@ -57,4 +57,12 @@ cd hw03
 python build_hw03_notebook.py
 ```
 
-실제 제출용 실험은 노트북의 `MAX_TRAIN_BATCHES = None`, `MAX_EVAL_BATCHES = None` 상태에서 실행한다. 빠른 디버깅이 필요하면 두 값을 작은 정수로 설정해 학습 루프만 확인할 수 있다.
+## Colab 실행 방법
+
+1. `DL_Lab0_HW03.ipynb`를 Colab에 업로드한다.
+2. `런타임 > 런타임 유형 변경 > GPU`를 선택한다.
+3. 위에서부터 전체 실행한다.
+
+노트북은 Colab을 감지하고, GPU가 없으면 `COLAB_FAST_DEV_RUN = True`로 전환해 epoch, batch size, batch 수를 줄인 smoke 실행만 수행한다. 이 모드는 코드 동작 확인용이다. 제출용 결과는 GPU 런타임에서 `COLAB_FAST_DEV_RUN = False`, `MAX_TRAIN_BATCHES = None`, `MAX_EVAL_BATCHES = None` 상태로 실행해야 한다.
+
+로컬 repo root에서 실행하면 `hw03/data`, `hw03/results_hw03`를 사용하고, Colab에 노트북만 업로드해 실행하면 현재 Colab 작업 디렉터리의 `data`, `results_hw03`를 사용한다.
