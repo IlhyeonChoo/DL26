@@ -2,6 +2,8 @@
 
 이 문서는 `DL_Lab0_HW03.ipynb`의 구성과 `Todo.md` 요구사항의 대응 관계를 정리한다.
 
+각 셀과 함수의 동작 방식, 모델 구조와 hyperparameter 선택 이유는 `DL_Lab0_HW03_detailed_explanation.md`에 더 자세히 정리했다.
+
 ## 설계 원칙
 
 HW02의 핵심 원칙인 변인 통제를 유지했다. 문제 1은 직접 설계 CNN의 구조와 학습 결과를 기록하고, 문제 2는 pre-defined architecture를 같은 조건에서 scratch로 학습한다. 문제 3은 ResNet-18 transfer learning의 세 조건을 비교하며, 문제 4는 해당 코드가 의도대로 작동하는지 검증한다.
@@ -62,7 +64,8 @@ python build_hw03_notebook.py
 1. `DL_Lab0_HW03.ipynb`를 Colab에 업로드한다.
 2. `런타임 > 런타임 유형 변경 > GPU`를 선택한다.
 3. 위에서부터 전체 실행한다.
+4. 첫 설정 셀에서 Google Drive 권한 요청이 뜨면 승인한다.
 
 노트북은 Colab을 감지하고, GPU가 없으면 `COLAB_FAST_DEV_RUN = True`로 전환해 epoch, batch size, batch 수를 줄인 smoke 실행만 수행한다. 이 모드는 코드 동작 확인용이다. 제출용 결과는 GPU 런타임에서 `COLAB_FAST_DEV_RUN = False`, `MAX_TRAIN_BATCHES = None`, `MAX_EVAL_BATCHES = None` 상태로 실행해야 한다.
 
-로컬 repo root에서 실행하면 `hw03/data`, `hw03/results_hw03`를 사용하고, Colab에 노트북만 업로드해 실행하면 현재 Colab 작업 디렉터리의 `data`, `results_hw03`를 사용한다.
+로컬 repo root에서 실행하면 `hw03/data`, `hw03/results_hw03`를 사용한다. Colab에 노트북만 업로드해 실행하면 CIFAR-10 데이터는 `/content/data`에 저장하고, 결과 파일은 Google Drive의 `/content/drive/MyDrive/DL26/hw03/results_hw03`에 저장한다. Drive 마운트를 원하지 않으면 첫 설정 셀에서 `MOUNT_GOOGLE_DRIVE_IN_COLAB = False`로 바꾸면 결과가 `/content/results_hw03`에 저장된다.
