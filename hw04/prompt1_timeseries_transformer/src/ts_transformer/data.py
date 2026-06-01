@@ -1,8 +1,10 @@
-"""Synthetic time-series data utilities."""
+"""Time-series data utilities."""
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -22,7 +24,7 @@ class SyntheticSeriesConfig:
 
 
 class SyntheticSineDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
-    """Generate multivariate sine-wave sequences for forecasting experiments."""
+    """Generate multivariate sine-wave sequences for forecasting smoke tests."""
 
     def __init__(self, config: SyntheticSeriesConfig) -> None:
         self.config = config
@@ -60,3 +62,130 @@ class SyntheticSineDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
 
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         return self.contexts[index], self.targets[index]
+
+
+ETTH1_FEATURE_COLUMNS = ("HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL", "OT")
+ETTH1_TARGET_COLUMN = "OT"
+
+
+@dataclass(frozen=True)
+class ETTh1Config:
+    """Configuration for the ETTh1 forecasting benchmark."""
+
+    data_path: Path
+    context_length: int = 96
+    prediction_length: int = 24
+    feature_columns: tuple[str, ...] = ETTH1_FEATURE_COLUMNS
+    target_column: str = ETTH1_TARGET_COLUMN
+    train_hours: int = 12 * 30 * 24
+    val_hours: int = 4 * 30 * 24
+    test_hours: int = 8 * 30 * 24
+
+
+@dataclass(frozen=True)
+class StandardScaler:
+    """Mean/std scaler fitted on the training portion only."""
+
+    mean: np.ndarray
+    std: np.ndarray
+
+    @classmethod
+    def fit(cls, values: np.ndarray) -> "StandardScaler":
+        mean = values.mean(axis=0, keepdims=True)
+        std = values.std(axis=0, keepdims=True)
+        std = np.where(std < 1e-6, 1.0, std)
+        return cls(mean=mean.astype(np.float32), std=std.astype(np.float32))
+
+    def transform(self, values: np.ndarray) -> np.ndarray:
+        return ((values - self.mean) / self.std).astype(np.float32)
+
+
+class ETTh1Dataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
+    """ETTh1 windows: 96 hours of 7 features to 24 hours of OT."""
+
+    def __init__(
+        self,
+        config: ETTh1Config,
+        split: str,
+        scaler: StandardScaler | None = None,
+    ) -> None:
+        if split not in {"train", "val", "test"}:
+            raise ValueError("split must be one of: train, val, test.")
+        if config.context_length <= 0 or config.prediction_length <= 0:
+            raise ValueError("context_length and prediction_length must be positive.")
+        if config.target_column not in config.feature_columns:
+            raise ValueError("target_column must be included in feature_columns.")
+
+        raw_values = load_etth1_values(config.data_path, config.feature_columns)
+        train_end = config.train_hours
+        val_end = train_end + config.val_hours
+        test_end = val_end + config.test_hours
+        usable_end = min(test_end, len(raw_values))
+        if usable_end < config.context_length + config.prediction_length:
+            raise ValueError("ETTh1 data is too short for the requested window lengths.")
+
+        self.context_length = config.context_length
+        self.prediction_length = config.prediction_length
+        self.target_index = config.feature_columns.index(config.target_column)
+        self.scaler = scaler or StandardScaler.fit(raw_values[: min(train_end, len(raw_values))])
+        self.values = torch.from_numpy(self.scaler.transform(raw_values[:usable_end]))
+        self.start_indices = self._build_start_indices(config, split, len(self.values))
+        if not self.start_indices:
+            raise ValueError(f"No {split} windows can be built from the provided data.")
+
+    def __len__(self) -> int:
+        return len(self.start_indices)
+
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+        start = self.start_indices[index]
+        context_end = start + self.context_length
+        target_end = context_end + self.prediction_length
+        context = self.values[start:context_end]
+        target = self.values[context_end:target_end, self.target_index : self.target_index + 1]
+        return context, target
+
+    def _build_start_indices(self, config: ETTh1Config, split: str, length: int) -> list[int]:
+        train_end = min(config.train_hours, length)
+        val_end = min(config.train_hours + config.val_hours, length)
+        test_end = min(config.train_hours + config.val_hours + config.test_hours, length)
+
+        if split == "train":
+            start = 0
+            end = train_end
+        elif split == "val":
+            start = max(0, train_end - config.context_length)
+            end = val_end
+        else:
+            start = max(0, val_end - config.context_length)
+            end = test_end
+
+        last_start = end - config.context_length - config.prediction_length
+        return list(range(start, last_start + 1))
+
+
+def load_etth1_values(
+    data_path: Path,
+    feature_columns: tuple[str, ...] = ETTH1_FEATURE_COLUMNS,
+) -> np.ndarray:
+    """Load ETTh1 numeric feature columns from a CSV file."""
+
+    path = Path(data_path)
+    if not path.exists():
+        raise FileNotFoundError(f"ETTh1 CSV file was not found: {path}")
+
+    rows: list[list[float]] = []
+    with path.open("r", newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        if reader.fieldnames is None:
+            raise ValueError("CSV file does not contain a header row.")
+        missing_columns = set(feature_columns) - set(reader.fieldnames)
+        if missing_columns:
+            missing = ", ".join(sorted(missing_columns))
+            raise ValueError(f"CSV file is missing required columns: {missing}")
+
+        for row in reader:
+            rows.append([float(row[column]) for column in feature_columns])
+
+    if not rows:
+        raise ValueError("CSV file does not contain any data rows.")
+    return np.asarray(rows, dtype=np.float32)
