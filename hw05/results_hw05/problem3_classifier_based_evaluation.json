@@ -1,0 +1,143 @@
+{
+  "discussion_summary": {
+    "quality": "Generated images should look like real FashionMNIST samples and be classified with high confidence.",
+    "diversity": "Generated images should not repeat one pattern and should cover many classes and shapes.",
+    "coverage": "Generated images should be distributed across the classes or modes present in real data."
+  },
+  "evaluation_method": "Classifier-based evaluation",
+  "classifier_history": {
+    "parameters": 421834,
+    "train_loss": [
+      0.4443174267927806,
+      0.2864606998840968,
+      0.23673832720120747,
+      0.2051219595591227,
+      0.18031527129014333
+    ],
+    "train_accuracy": [
+      0.8395333333333334,
+      0.8965833333333333,
+      0.91385,
+      0.9254333333333333,
+      0.9344333333333333
+    ],
+    "test_loss": [
+      0.30068960118293764,
+      0.2789646454811096,
+      0.2512759220123291,
+      0.235337553024292,
+      0.22580658926963806
+    ],
+    "test_accuracy": [
+      0.8911,
+      0.8977,
+      0.9069,
+      0.9143,
+      0.9192
+    ]
+  },
+  "generated_metrics": {
+    "VAE latent 2": {
+      "sample_count": 1000,
+      "mean_confidence": 0.7033578157424927,
+      "median_confidence": 0.7324241995811462,
+      "high_confidence_threshold": 0.8,
+      "high_confidence_rate": 0.40799999237060547,
+      "coverage_class_count": 8,
+      "class_entropy": 1.9316542148590088,
+      "normalized_class_entropy": 0.8389067548087328,
+      "class_counts": [
+        254,
+        64,
+        150,
+        35,
+        0,
+        67,
+        0,
+        184,
+        106,
+        140
+      ],
+      "class_distribution": [
+        0.2540000081062317,
+        0.06400000303983688,
+        0.15000000596046448,
+        0.03500000014901161,
+        0.0,
+        0.06700000166893005,
+        0.0,
+        0.18400000035762787,
+        0.10599999874830246,
+        0.14000000059604645
+      ]
+    },
+    "VAE latent 8": {
+      "sample_count": 1000,
+      "mean_confidence": 0.6846079230308533,
+      "median_confidence": 0.6944820284843445,
+      "high_confidence_threshold": 0.8,
+      "high_confidence_rate": 0.3720000088214874,
+      "coverage_class_count": 10,
+      "class_entropy": 2.021104574203491,
+      "normalized_class_entropy": 0.8777545517368346,
+      "class_counts": [
+        208,
+        58,
+        206,
+        112,
+        16,
+        20,
+        8,
+        119,
+        136,
+        117
+      ],
+      "class_distribution": [
+        0.20800000429153442,
+        0.057999998331069946,
+        0.20600000023841858,
+        0.1120000034570694,
+        0.01600000075995922,
+        0.019999999552965164,
+        0.00800000037997961,
+        0.11900000274181366,
+        0.13600000739097595,
+        0.11699999868869781
+      ]
+    },
+    "VAE latent 32": {
+      "sample_count": 1000,
+      "mean_confidence": 0.6732165813446045,
+      "median_confidence": 0.673206627368927,
+      "high_confidence_threshold": 0.8,
+      "high_confidence_rate": 0.33500000834465027,
+      "coverage_class_count": 10,
+      "class_entropy": 1.991668462753296,
+      "normalized_class_entropy": 0.864970611142853,
+      "class_counts": [
+        193,
+        57,
+        250,
+        76,
+        26,
+        10,
+        11,
+        104,
+        149,
+        124
+      ],
+      "class_distribution": [
+        0.19300000369548798,
+        0.05700000002980232,
+        0.25,
+        0.07599999755620956,
+        0.026000000536441803,
+        0.009999999776482582,
+        0.010999999940395355,
+        0.10400000214576721,
+        0.14900000393390656,
+        0.12399999797344208
+      ]
+    }
+  }
+}

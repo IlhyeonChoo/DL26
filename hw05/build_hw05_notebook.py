@@ -29,7 +29,7 @@ cells = [
         r"""
 # DL Lab HW05 - Autoencoder and Variational Autoencoder
 
-이 노트북은 `Todo.md`의 문제 1~2를 수행하기 위한 실험 노트북이다. 문제 3은 요청에 따라 제외한다.
+이 노트북은 `Todo.md`의 문제 1~3을 수행하기 위한 실험 노트북이다.
 
 FashionMNIST 데이터셋에 대해 Autoencoder(AE)와 Variational Autoencoder(VAE)를 구현하고, latent dimension이 복원 품질과 latent space 구조에 미치는 영향을 비교한다.
 
@@ -39,6 +39,7 @@ Colab에서 실행할 때는 `런타임 > 런타임 유형 변경 > GPU`를 선�
 | --- | --- | --- |
 | 문제 1 | AE latent dim 2/8/32 | 784 -> 256 -> 128 -> latent -> 128 -> 256 -> 784 |
 | 문제 2 | VAE latent dim 2/8/32 | AE와 같은 hidden 구조, reconstruction loss + beta * KL |
+| 문제 3 | Classifier 기반 생성 이미지 검증 | FashionMNIST classifier로 VAE sample의 confidence/class distribution 측정 |
 """
     ),
     code_cell(
@@ -115,7 +116,7 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 RUN_PROBLEM_1 = True
 RUN_PROBLEM_2 = True
-RUN_PROBLEM_3 = False
+RUN_PROBLEM_3 = True
 
 COLAB_FAST_DEV_RUN = IN_COLAB and device.type != "cuda"
 MAX_TRAIN_BATCHES = 2 if COLAB_FAST_DEV_RUN else None
@@ -765,6 +766,348 @@ comparison_rows
 - 같은 latent dimension에서 VAE의 reconstruction은 AE보다 흐릴 수 있다. 이는 reconstruction 정확도만 최적화하는 AE와 달리 VAE는 sampling 가능하고 정규화된 latent space도 함께 만족해야 하기 때문이다.
 - `latent_dim=2`에서 AE latent space는 class별 cluster가 불규칙하거나 빈 공간이 많을 수 있고, VAE는 KL 항의 영향으로 원점 주변에 더 연속적으로 모이는 경향을 보일 수 있다.
 - 최종 보고서에서는 `problem1_ae_results.json`, `problem2_vae_results.json`, `problem2_ae_vae_comparison.json`의 수치와 생성된 reconstruction/latent plot을 근거로 서술한다.
+"""
+    ),
+    markdown_cell(
+        r"""
+## 문제 3. 생성 모델의 검증
+
+팀 논의에서는 좋은 생성 모델의 기준을 다음 세 가지로 정리했다.
+
+![Problem 3 discussion](q3.png)
+
+- 품질(Quality): 생성 이미지가 실제 FashionMNIST 이미지처럼 보이고, classifier가 높은 confidence로 특정 클래스로 분류할 수 있어야 한다.
+- 다양성(Diversity): 특정 패턴만 반복하지 않고 여러 클래스와 형태가 생성되어야 한다.
+- 커버리지(Coverage): 실제 데이터에 존재하는 클래스 또는 모드를 고르게 생성해야 한다.
+
+이 노트북에서는 위 기준을 반영하기 위해 classifier 기반 평가를 구현한다. FashionMNIST classifier를 train split으로 학습하고, VAE가 표준정규분포에서 sampling한 latent vector로 생성한 이미지를 classifier에 입력한다. 이후 평균 confidence, high-confidence 비율, 예측 클래스 분포, class entropy, coverage class 수를 측정한다.
+"""
+    ),
+    code_cell(
+        r"""
+class FashionMNISTClassifier(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64 * 7 * 7, 128),
+            nn.ReLU(),
+            nn.Dropout(0.25),
+            nn.Linear(128, NUM_CLASSES),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.classifier(self.features(x))
+
+
+def train_classifier(
+    epochs: int,
+    learning_rate: float,
+    weight_decay: float,
+) -> tuple[FashionMNISTClassifier, dict]:
+    set_global_seed(BASE_SEED + 300)
+    model = FashionMNISTClassifier().to(device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
+    scaler = torch.amp.GradScaler("cuda", init_scale=AMP_INIT_SCALE, enabled=USE_AMP)
+
+    history = {
+        "parameters": count_parameters(model),
+        "train_loss": [],
+        "train_accuracy": [],
+        "test_loss": [],
+        "test_accuracy": [],
+    }
+
+    for epoch in range(1, epochs + 1):
+        model.train()
+        loss_sum = 0.0
+        correct = 0
+        sample_count = 0
+
+        for batch_idx, (x, labels) in enumerate(train_loader):
+            if MAX_TRAIN_BATCHES is not None and batch_idx >= MAX_TRAIN_BATCHES:
+                break
+            x = x.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
+
+            optimizer.zero_grad(set_to_none=True)
+            with amp_context():
+                logits = model(x)
+                loss = F.cross_entropy(logits, labels)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
+            batch_size = x.size(0)
+            loss_sum += loss.detach().item() * batch_size
+            correct += (logits.argmax(dim=1) == labels).sum().item()
+            sample_count += batch_size
+
+        scheduler.step()
+        test_metrics = evaluate_classifier(model)
+        history["train_loss"].append(loss_sum / sample_count)
+        history["train_accuracy"].append(correct / sample_count)
+        history["test_loss"].append(test_metrics["loss"])
+        history["test_accuracy"].append(test_metrics["accuracy"])
+        print(
+            f"[Classifier] epoch {epoch:02d}/{epochs} "
+            f"train_acc={history['train_accuracy'][-1]:.4f} "
+            f"test_acc={test_metrics['accuracy']:.4f}"
+        )
+
+    return model, history
+
+
+@torch.no_grad()
+def evaluate_classifier(model: FashionMNISTClassifier) -> dict[str, float]:
+    model.eval()
+    loss_sum = 0.0
+    correct = 0
+    sample_count = 0
+
+    for batch_idx, (x, labels) in enumerate(test_loader):
+        if MAX_EVAL_BATCHES is not None and batch_idx >= MAX_EVAL_BATCHES:
+            break
+        x = x.to(device, non_blocking=True)
+        labels = labels.to(device, non_blocking=True)
+        with amp_context():
+            logits = model(x)
+            loss = F.cross_entropy(logits, labels)
+        batch_size = x.size(0)
+        loss_sum += loss.item() * batch_size
+        correct += (logits.argmax(dim=1) == labels).sum().item()
+        sample_count += batch_size
+
+    return {
+        "loss": loss_sum / sample_count,
+        "accuracy": correct / sample_count,
+    }
+"""
+    ),
+    code_cell(
+        r"""
+@torch.no_grad()
+def generate_vae_images(
+    model: VariationalAutoencoder,
+    latent_dim: int,
+    sample_count: int,
+    batch_size: int,
+) -> torch.Tensor:
+    model.eval()
+    generated_batches = []
+    remaining = sample_count
+
+    while remaining > 0:
+        current_batch_size = min(batch_size, remaining)
+        z = torch.randn(current_batch_size, latent_dim, device=device)
+        images = model.decode(z).clamp(0.0, 1.0)
+        generated_batches.append(images.cpu())
+        remaining -= current_batch_size
+
+    return torch.cat(generated_batches, dim=0)
+
+
+@torch.no_grad()
+def evaluate_generated_images_with_classifier(
+    classifier: FashionMNISTClassifier,
+    images: torch.Tensor,
+    batch_size: int,
+    confidence_threshold: float = 0.8,
+) -> dict:
+    classifier.eval()
+    probability_parts = []
+
+    for start in range(0, images.size(0), batch_size):
+        batch = images[start : start + batch_size].to(device, non_blocking=True)
+        with amp_context():
+            logits = classifier(batch)
+            probabilities = torch.softmax(logits, dim=1)
+        probability_parts.append(probabilities.cpu())
+
+    probabilities = torch.cat(probability_parts, dim=0)
+    confidences, predictions = probabilities.max(dim=1)
+    class_counts = torch.bincount(predictions, minlength=NUM_CLASSES).float()
+    class_distribution = class_counts / class_counts.sum().clamp_min(1.0)
+    nonzero_distribution = class_distribution[class_distribution > 0]
+    entropy = -(nonzero_distribution * nonzero_distribution.log()).sum().item()
+    normalized_entropy = entropy / torch.log(torch.tensor(float(NUM_CLASSES))).item()
+
+    return {
+        "sample_count": int(images.size(0)),
+        "mean_confidence": float(confidences.mean().item()),
+        "median_confidence": float(confidences.median().item()),
+        "high_confidence_threshold": confidence_threshold,
+        "high_confidence_rate": float((confidences >= confidence_threshold).float().mean().item()),
+        "coverage_class_count": int((class_counts > 0).sum().item()),
+        "class_entropy": float(entropy),
+        "normalized_class_entropy": float(normalized_entropy),
+        "class_counts": [int(value) for value in class_counts.tolist()],
+        "class_distribution": [float(value) for value in class_distribution.tolist()],
+    }
+
+
+def plot_generated_samples(
+    images: torch.Tensor,
+    path: Path,
+    title: str,
+    sample_count: int = 40,
+) -> None:
+    selected = images[:sample_count]
+    columns = 10
+    rows = (selected.size(0) + columns - 1) // columns
+    fig, axes = plt.subplots(rows, columns, figsize=(columns, rows))
+    axes = axes.reshape(rows, columns)
+
+    for idx in range(rows * columns):
+        row = idx // columns
+        column = idx % columns
+        axes[row, column].axis("off")
+        if idx < selected.size(0):
+            axes[row, column].imshow(selected[idx, 0], cmap="gray")
+
+    fig.suptitle(title)
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.show()
+    print("Saved:", path)
+
+
+def plot_class_distribution(metrics_by_name: dict[str, dict], path: Path) -> None:
+    x = torch.arange(NUM_CLASSES).numpy()
+    width = 0.8 / max(len(metrics_by_name), 1)
+    plt.figure(figsize=(10, 5))
+
+    for idx, (name, metrics) in enumerate(metrics_by_name.items()):
+        offset = (idx - (len(metrics_by_name) - 1) / 2) * width
+        plt.bar(
+            x + offset,
+            metrics["class_distribution"],
+            width=width,
+            label=name,
+        )
+
+    plt.xticks(x, class_names, rotation=30, ha="right")
+    plt.ylabel("Predicted class probability")
+    plt.title("Classifier-predicted distribution of VAE generated images")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(path, dpi=150)
+    plt.show()
+    print("Saved:", path)
+
+
+def plot_problem3_metric_bars(metrics_by_name: dict[str, dict], path: Path) -> None:
+    names = list(metrics_by_name)
+    metric_names = ["mean_confidence", "high_confidence_rate", "normalized_class_entropy"]
+    fig, axes = plt.subplots(1, len(metric_names), figsize=(12, 4))
+
+    for axis, metric_name in zip(axes, metric_names, strict=True):
+        values = [metrics_by_name[name][metric_name] for name in names]
+        axis.bar(names, values)
+        axis.set_ylim(0.0, 1.0)
+        axis.set_title(metric_name)
+        axis.tick_params(axis="x", rotation=20)
+        axis.grid(axis="y", alpha=0.3)
+
+    fig.suptitle("Problem 3 classifier-based generation metrics")
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.show()
+    print("Saved:", path)
+"""
+    ),
+    code_cell(
+        r"""
+CLASSIFIER_EPOCHS = experiment_epochs(5)
+CLASSIFIER_LR = 1e-3
+CLASSIFIER_WEIGHT_DECAY = 1e-4
+GENERATED_SAMPLE_COUNT = 1000 if not COLAB_FAST_DEV_RUN else 64
+GENERATION_BATCH_SIZE = experiment_batch_size(256)
+
+classifier_model: FashionMNISTClassifier | None = None
+classifier_history: dict = {}
+problem3_metrics: dict[str, dict] = {}
+
+if RUN_PROBLEM_3:
+    if not vae_models:
+        raise RuntimeError("Run Problem 2 first so that vae_models contains trained VAE models.")
+
+    classifier_model, classifier_history = train_classifier(
+        epochs=CLASSIFIER_EPOCHS,
+        learning_rate=CLASSIFIER_LR,
+        weight_decay=CLASSIFIER_WEIGHT_DECAY,
+    )
+
+    generated_examples: dict[str, torch.Tensor] = {}
+    for latent_dim, vae_model in vae_models.items():
+        name = f"VAE latent {latent_dim}"
+        generated_images = generate_vae_images(
+            model=vae_model,
+            latent_dim=latent_dim,
+            sample_count=GENERATED_SAMPLE_COUNT,
+            batch_size=GENERATION_BATCH_SIZE,
+        )
+        generated_examples[name] = generated_images
+        metrics = evaluate_generated_images_with_classifier(
+            classifier=classifier_model,
+            images=generated_images,
+            batch_size=GENERATION_BATCH_SIZE,
+            confidence_threshold=0.8,
+        )
+        problem3_metrics[name] = metrics
+        plot_generated_samples(
+            images=generated_images,
+            path=output_dir / f"problem3_generated_samples_latent_{latent_dim}.png",
+            title=f"Generated samples from VAE latent_dim={latent_dim}",
+        )
+        print(name, metrics)
+
+    save_json(
+        {
+            "discussion_summary": {
+                "quality": "Generated images should look like real FashionMNIST samples and be classified with high confidence.",
+                "diversity": "Generated images should not repeat one pattern and should cover many classes and shapes.",
+                "coverage": "Generated images should be distributed across the classes or modes present in real data.",
+            },
+            "evaluation_method": "Classifier-based evaluation",
+            "classifier_history": classifier_history,
+            "generated_metrics": problem3_metrics,
+        },
+        output_dir / "problem3_classifier_based_evaluation.json",
+    )
+    plot_class_distribution(
+        metrics_by_name=problem3_metrics,
+        path=output_dir / "problem3_generated_class_distribution.png",
+    )
+    plot_problem3_metric_bars(
+        metrics_by_name=problem3_metrics,
+        path=output_dir / "problem3_generation_metric_bars.png",
+    )
+
+problem3_metrics
+"""
+    ),
+    markdown_cell(
+        r"""
+### 문제 3 분석 초안
+
+- 품질(Quality)은 classifier의 `mean_confidence`와 `high_confidence_rate`로 해석한다. 생성 이미지가 실제 FashionMNIST와 유사하고 클래스 특징이 뚜렷하다면 classifier가 높은 확률로 한 클래스를 선택한다.
+- 다양성(Diversity)은 예측 class distribution과 `normalized_class_entropy`로 해석한다. 특정 class에만 몰리면 entropy가 낮고, 여러 class로 고르게 분포하면 entropy가 높다.
+- 커버리지(Coverage)는 `coverage_class_count`와 class distribution으로 해석한다. 10개 class 중 몇 개 class가 생성 결과에서 관찰되는지 확인한다.
+- 이 방법의 장점은 수치화가 쉽고 자동 평가가 가능하다는 점이다. 또한 classifier test accuracy를 함께 확인해 평가 도구 자체가 FashionMNIST를 잘 구분하는지 검증할 수 있다.
+- 한계는 classifier가 틀리거나 과신할 수 있다는 점이다. 높은 confidence가 항상 사람이 보기에 좋은 이미지를 의미하지는 않으며, 같은 class 안의 세부 mode 다양성까지 충분히 측정하지 못한다.
+- 최종 보고서에서는 `problem3_classifier_based_evaluation.json`, generated sample grid, class distribution plot, metric bar plot을 근거로 품질/다양성/커버리지를 각각 서술한다.
 """
     ),
 ]

@@ -1,0 +1,31 @@
+{
+  "comparison": [
+    {
+      "latent_dim": 2,
+      "ae_test_recon_loss": 0.026747923773527145,
+      "ae_parameters": 469010,
+      "vae_test_total_loss": 0.02820366048812866,
+      "vae_test_recon_loss": 0.027280169856548308,
+      "vae_test_kl_loss": 9.234905853271485,
+      "vae_parameters": 469268
+    },
+    {
+      "latent_dim": 8,
+      "ae_test_recon_loss": 0.015581013861298561,
+      "ae_parameters": 470552,
+      "vae_test_total_loss": 0.017829641610383987,
+      "vae_test_recon_loss": 0.01568146896958351,
+      "vae_test_kl_loss": 21.4817287689209,
+      "vae_parameters": 471584
+    },
+    {
+      "latent_dim": 32,
+      "ae_test_recon_loss": 0.014283188357949258,
+      "ae_parameters": 476720,
+      "vae_test_total_loss": 0.01781085589528084,
+      "vae_test_recon_loss": 0.015137700241804122,
+      "vae_test_kl_loss": 26.731556561279298,
+      "vae_parameters": 480848
+    }
+  ]
+}
